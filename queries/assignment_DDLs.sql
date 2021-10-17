@@ -1,0 +1,277 @@
+-- check for null values
+select * from acs2015_county ac
+where TotalPop is null or men is null or women is null or hispanic is null or white is null or black is null or native is null
+or asian is null or pacific is null or citizen is null or income is null or IncomeErr is null or IncomePerCap is null or poverty is null or 
+ChildPoverty is null or Professional is null or Service is null or office is null or Construction is null or Production is null or drive is null or 
+Carpool is null or Transit is null or walk is null or OtherTransp is null or WorkAtHome is null or MeanCommute is null or Employed is null or
+PrivateWork is null or PublicWork is null or SelfEmployed is null or FamilyWork is null or Unemployment is null; -- no null values
+
+select * from acs2017_county ac
+where TotalPop is null or men is null or women is null or hispanic is null or white is null or black is null or native is null
+or asian is null or pacific is null or VotingAgeCitizen is null or income is null or IncomeErr is null or IncomePerCap is null or poverty is null or 
+ChildPoverty is null or Professional is null or Service is null or office is null or Construction is null or Production is null or drive is null or 
+Carpool is null or Transit is null or walk is null or OtherTransp is null or WorkAtHome is null or MeanCommute is null or Employed is null or
+PrivateWork is null or PublicWork is null or SelfEmployed is null or FamilyWork is null or Unemployment is null; -- no null values
+
+-- check for empty strings
+select * from acs2015_county ac
+where TotalPop = '' or men = '' or women = '' or hispanic = '' or white = '' or black = '' or native = ''
+or asian = '' or pacific = '' or citizen = '' or income = '' or IncomeErr = '' or IncomePerCap = '' or poverty = '' or 
+ChildPoverty = '' or Professional = '' or Service = '' or office = '' or Construction = '' or Production = '' or drive = '' or 
+Carpool = '' or Transit = '' or walk = '' or OtherTransp = '' or WorkAtHome = '' or MeanCommute = '' or Employed = '' or
+PrivateWork = '' or PublicWork = '' or SelfEmployed = '' or FamilyWork = '' or Unemployment = '';
+-- censusid 15005 is missing Childpoverty
+-- censusid 48301 is missing income, incomeerr
+
+select * from acs2017_county ac
+where TotalPop = '' or men = '' or women = '' or hispanic = '' or white = '' or black = '' or native = ''
+or asian = '' or pacific = '' or VotingAgeCitizen = '' or income = '' or IncomeErr = '' or IncomePerCap = '' or poverty = '' or 
+ChildPoverty = '' or Professional = '' or Service = '' or office = '' or Construction = '' or Production = '' or drive = '' or 
+Carpool = '' or Transit = '' or walk = '' or OtherTransp = '' or WorkAtHome = '' or MeanCommute = '' or Employed = '' or
+PrivateWork = '' or PublicWork = '' or SelfEmployed = '' or FamilyWork = '' or Unemployment = '';
+-- censusid 15005 is missing Childpovert
+
+-- update empty strings into null values
+Update acs2015_county set ChildPoverty = NULL where CensusId = 15005;
+Update acs2017_county set ChildPoverty = NULL where CountyId = 15005;
+Update acs2015_county set Income = NULL, IncomeErr = NULL where CensusId = 48301;
+
+-- fix county name issue in 2017 census
+update acs2017_county set county = trim(replace(replace(replace(county, 'County', ''), 'Parish', ''), 'Municipio', ''));
+
+-- DDLs
+drop table state_dim;
+create table state_dim (
+	StateId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	State TEXT
+);
+
+drop table county_dim ;
+create table county_dim (
+	CountyId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	County TEXT
+);
+
+drop table black_composition_dim; 
+create table black_composition_dim (
+	BcId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	black_composition TEXT
+);
+
+drop table white_composition_dim ;
+create table white_composition_dim (
+	WcId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	white_composition TEXT
+);
+
+drop table asian_composition_dim ;
+create table asian_composition_dim (
+	AcId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	asian_composition TEXT
+);
+
+drop table hispanic_composition_dim ;
+create table hispanic_composition_dim (
+	HcId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	hispanic_composition TEXT
+);
+
+drop table commute_dim ;
+create table commute_dim (
+	CommuteId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	commute_specification TEXT
+);
+
+drop table date_dim ;
+create table date_dim (
+	DateId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	year TEXT
+);
+
+-- populate state_dim
+insert into state_dim (State)
+select distinct State from acs2015_county ac;
+
+-- populate county_dim
+insert into county_dim (County)
+select distinct county from acs2015_county ac;
+
+-- populate black_composition_dim
+insert into black_composition_dim (black_composition)
+values ('Minority'), ('Plurality'), ('Majority');
+
+-- populate white_composition_dim
+insert into white_composition_dim (white_composition)
+values ('Minority'), ('Plurality'), ('Majority');
+
+-- populate asian_composition_dim
+insert into asian_composition_dim (asian_composition)
+values ('Minority'), ('Plurality'), ('Majority');
+
+-- populate hispanic_composition_dim
+insert into hispanic_composition_dim (hispanic_composition)
+values ('Minority'), ('Plurality'), ('Majority');
+
+-- populate commute_dim
+insert into commute_dim (commute_specification)
+values ('Low Commute Time'), ('Normal Commute Time'), ('High Commute Time');
+
+-- populate date_dim
+insert into date_dim (year)
+values ('2015'), ('2017');
+
+-- create and populate fact table
+drop table census_facts;
+CREATE TABLE census_facts (
+	CensusId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	DateId INTEGER NOT NULL,
+	StateId INTEGER NOT NULL,
+	CountyId INTEGER NOT NULL,
+	BcId INTEGER NOT NULL,
+	WcId INTEGER NOT NULL,
+	HcId INTEGER NOT NULL,
+	AcId INTEGER NOT NULL,
+	CommuteId INTEGER NOT NULL,
+	TotalPop INTEGER,
+	Men INTEGER,
+	Women INTEGER,
+	Hispanic REAL,
+	White REAL,
+	Black REAL,
+	Native REAL,
+	Asian REAL,
+	Pacific REAL,
+	Citizen INTEGER,
+	Income REAL,
+	IncomeErr REAL,
+	IncomePerCap INTEGER,
+	IncomePerCapErr INTEGER,
+	Poverty REAL,
+	ChildPoverty REAL,
+	Professional REAL,
+	Service REAL,
+	Office REAL,
+	Construction REAL,
+	Production REAL,
+	Drive REAL,
+	Carpool REAL,
+	Transit REAL,
+	Walk REAL,
+	OtherTransp REAL,
+	WorkAtHome REAL,
+	MeanCommute REAL,
+	Employed INTEGER,
+	PrivateWork REAL,
+	PublicWork REAL,
+	SelfEmployed REAL,
+	FamilyWork REAL,
+	Unemployment REAL,
+	FOREIGN KEY (DateId)
+       REFERENCES date_dim (DateId),
+    FOREIGN KEY (StateId)
+       REFERENCES state_dim (StateId),
+    FOREIGN KEY (CountyId)
+       REFERENCES county_dim (CountyId),
+    FOREIGN KEY (BcId)
+       REFERENCES black_composition_dim (BcId), 
+    FOREIGN KEY (WcId)
+       REFERENCES white_composition_dim (WcId), 
+    FOREIGN KEY (AcId)
+       REFERENCES asian_composition_dim (AcId), 
+    FOREIGN KEY (HcId)
+       REFERENCES hispanic_composition_dim (HcId), 
+    FOREIGN KEY (CommuteId)
+       REFERENCES commute_dim (CommuteId)
+);
+
+insert into census_facts (DateId, StateId, CountyId, BcId, WcId, HcId, AcId, CommuteId,
+							TotalPop, Men, Women, Hispanic, White, Black, Native, Asian, Pacific, Citizen,
+							Income, IncomeErr, IncomePerCap, IncomePerCapErr, Poverty, ChildPoverty, Professional,
+							Service, Office, Construction, Production, Drive, Carpool, Transit, Walk, OtherTransp,
+							WorkAtHome, MeanCommute, Employed, PrivateWork, PublicWork, SelfEmployed, FamilyWork, Unemployment)
+SELECT 1 as DateId, s.StateId, c.CountyId,
+case 
+	when Black >= 50 then 3
+	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
+					(Black > White and Black > Native and Black > Asian and Black > Pacific and Black > Hispanic) then 2
+	else 1 end BcId,
+case 
+	when White >= 50 then 3
+	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
+					(White > Black and White > Native and White > Asian and White > Pacific and White > Hispanic) then 2
+	else 1 end WcId,
+case 
+	when Hispanic >= 50 then 3
+	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
+					(Hispanic > White and Hispanic > Black and Hispanic > Native and Hispanic > Asian and Hispanic > Pacific) then 2
+	else 1 end HcId,
+case 
+	when Asian >= 50 then 3
+	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
+					(Asian > White and Asian > Black and Asian > Native and Asian > Pacific and Asian > Hispanic) then 2
+	else 1 end AcId,
+case 
+   	when meanCommute > (select avg(meanCommute) + stdev(MeanCommute) from acs2015_county group by state ) then 3
+	when meanCommute < (select avg(meanCommute) + stdev(MeanCommute) from acs2015_county group by state ) 
+			and MeanCommute > (select avg(meanCommute) - stdev(MeanCommute) from acs2015_county group by state ) then 2
+	else 1 end commute_id,
+TotalPop, Men, Women, 
+Hispanic, White, Black, 
+Native, Asian, Pacific, 
+Citizen, Income, IncomeErr, 
+IncomePerCap, IncomePerCapErr, Poverty, 
+ChildPoverty, Professional, Service, 
+Office, Construction, Production,
+Drive, Carpool, Transit,
+Walk, OtherTransp, WorkAtHome,
+MeanCommute, Employed, PrivateWork,
+PublicWork, SelfEmployed,
+FamilyWork, Unemployment
+FROM acs2015_county t
+inner join state_dim s on s.state = t.state
+inner join county_dim c on c.county = t.County
+UNION
+SELECT 2 as Dateid, s.StateId, c.CountyId,
+case 
+	when Black >= 50 then 3
+	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
+					(Black > White and Black > Native and Black > Asian and Black > Pacific and Black > Hispanic) then 2
+	else 1 end BcId,
+case 
+	when White >= 50 then 3
+	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
+					(White > Black and White > Native and White > Asian and White > Pacific and White > Hispanic) then 2
+	else 1 end WcId,
+case 
+	when Hispanic >= 50 then 3
+	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
+					(Hispanic > White and Hispanic > Black and Hispanic > Native and Hispanic > Asian and Hispanic > Pacific) then 2
+	else 1 end HcId,
+case 
+	when Asian >= 50 then 3
+	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
+					(Asian > White and Asian > Black and Asian > Native and Asian > Pacific and Asian > Hispanic) then 2
+	else 1 end AcId,
+case 
+   	when meanCommute > (select avg(meanCommute) + stdev(MeanCommute) from acs2017_county group by state ) then 3
+	when meanCommute < (select avg(meanCommute) + stdev(MeanCommute) from acs2017_county group by state ) 
+			and MeanCommute > (select avg(meanCommute) - stdev(MeanCommute) from acs2017_county group by state ) then 2
+	else 1 end commute_id,
+TotalPop, Men, Women,
+Hispanic, White, Black,
+Native, Asian, Pacific, 
+VotingAgeCitizen as Citizen , Income, IncomeErr,
+IncomePerCap, IncomePerCapErr, Poverty, 
+ChildPoverty, Professional, Service, 
+Office, Construction, Production, 
+Drive, Carpool, Transit, 
+Walk, OtherTransp, WorkAtHome, 
+MeanCommute, Employed, PrivateWork,
+PublicWork, SelfEmployed, 
+FamilyWork, Unemployment
+FROM acs2017_county t2
+inner join state_dim s on s.state = t2.state
+inner join county_dim c on c.county = t2.County;
+
+-- test query from main facts table
+select * from census_facts cf ;
