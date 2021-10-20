@@ -274,4 +274,19 @@ inner join state_dim s on s.state = t2.state
 inner join county_dim c on c.county = t2.County;
 
 -- test query from main facts table
-select * from census_facts cf ;
+select * from census_facts cf;
+
+-- trigger logging activity on insert
+drop trigger LogInsertsCensusTrigger;
+CREATE TRIGGER LogInsertsCensusTrigger 
+       AFTER INSERT ON census_facts
+BEGIN 
+  INSERT INTO  census_logs VALUES(new.ID, datetime(), 'Insert');
+END;
+
+DROP table census_logs;
+CREATE TABLE census_logs (
+	CensusId INTEGER,
+	ModificationDate TEXT,
+	ModificationType TEXT
+);
