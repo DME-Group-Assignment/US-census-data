@@ -276,19 +276,23 @@ inner join county_dim c on c.county = t2.County;
 -- test query from main facts table
 select * from census_facts cf;
 
--- trigger logging activity on insert
-drop trigger LogInsertsCensusTrigger;
-CREATE TRIGGER LogInsertsCensusTrigger 
-       AFTER INSERT ON census_facts
+-- trigger prevent update
+drop trigger PreventUpdateCensusFacts;
+CREATE TRIGGER PreventUpdateCensusFacts
+       BEFORE UPDATE ON census_facts
 BEGIN 
-  INSERT INTO  census_logs VALUES(new.ID, datetime(), 'Insert');
+  SELECT CASE 
+  		WHEN new.hispanic is not null or
+  			 new.white is not null or
+  			 new.black is not null or
+  			 new.asian is not null or
+  			 new.income is not null or
+  			 new.meancommute is not null
+  		then
+  		RAISE(ABORT,'You cannot update race, income or commute attributes.') END;
 END;
 
-DROP table census_logs;
-CREATE TABLE census_logs (
-	CensusId INTEGER,
-	ModificationDate TEXT,
-	ModificationType TEXT
-);
-
-
+-- Demonstrate that the trigger does not allow to update specific columns
+update census_facts 
+set white = 100
+where white < 50;
