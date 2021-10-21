@@ -192,23 +192,23 @@ insert into census_facts (DateId, StateId, CountyId, BcId, WcId, HcId, AcId, Com
 SELECT 1 as DateId, s.StateId, c.CountyId,
 case 
 	when Black >= 50 then 3
-	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
-					(Black > White and Black > Native and Black > Asian and Black > Pacific and Black > Hispanic) then 2
+	when Black < 50 and (Black > Hispanic and Black > White and Black > Native and Black > Pacific and Black > Asian) then 2
+	when Black between 40 and 50 and (White >= 50 or Hispanic >= 50 or Asian >= 50 or Native >= 50 or Pacific >= 50) then 2
 	else 1 end BcId,
 case 
 	when White >= 50 then 3
-	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
-					(White > Black and White > Native and White > Asian and White > Pacific and White > Hispanic) then 2
+	when White < 50 and (White > Hispanic and White > Black and White > Native and White > Pacific and White > Asian) then 2
+	when White between 40 and 50 and (Black >= 50 or Hispanic >= 50 or Asian >= 50 or Native >= 50 or Pacific >= 50) then 2
 	else 1 end WcId,
 case 
 	when Hispanic >= 50 then 3
-	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
-					(Hispanic > White and Hispanic > Black and Hispanic > Native and Hispanic > Asian and Hispanic > Pacific) then 2
+	when Hispanic < 50 and (Hispanic > White and Hispanic > Black and Hispanic > Native and Hispanic > Pacific and Hispanic > Asian) then 2
+	when Hispanic between 40 and 50 and (Black >= 50 or White >= 50 or Asian >= 50 or Native >= 50 or Pacific >= 50) then 2
 	else 1 end HcId,
 case 
 	when Asian >= 50 then 3
-	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
-					(Asian > White and Asian > Black and Asian > Native and Asian > Pacific and Asian > Hispanic) then 2
+	when Asian < 50 and (Asian > White and Asian > Black and Asian > Native and Asian > Pacific and Asian > Hispanic) then 2
+	when Asian between 40 and 50 and (Black >= 50 or White >= 50 or Hispanic >= 50 or Native >= 50 or Pacific >= 50) then 2
 	else 1 end AcId,
 case 
    	when meanCommute > (select avg(meanCommute) + stdev(MeanCommute) from acs2015_county group by state ) then 3
@@ -234,23 +234,23 @@ UNION
 SELECT 2 as Dateid, s.StateId, c.CountyId,
 case 
 	when Black >= 50 then 3
-	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
-					(Black > White and Black > Native and Black > Asian and Black > Pacific and Black > Hispanic) then 2
+	when Black < 50 and (Black > Hispanic and Black > White and Black > Native and Black > Pacific and Black > Asian) then 2
+	when Black between 40 and 50 and (White >= 50 or Hispanic >= 50 or Asian >= 50 or Native >= 50 or Pacific >= 50) then 2
 	else 1 end BcId,
 case 
 	when White >= 50 then 3
-	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
-					(White > Black and White > Native and White > Asian and White > Pacific and White > Hispanic) then 2
+	when White < 50 and (White > Hispanic and White > Black and White > Native and White > Pacific and White > Asian) then 2
+	when White between 40 and 50 and (Black >= 50 or Hispanic >= 50 or Asian >= 50 or Native >= 50 or Pacific >= 50) then 2
 	else 1 end WcId,
 case 
 	when Hispanic >= 50 then 3
-	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
-					(Hispanic > White and Hispanic > Black and Hispanic > Native and Hispanic > Asian and Hispanic > Pacific) then 2
+	when Hispanic < 50 and (Hispanic > White and Hispanic > Black and Hispanic > Native and Hispanic > Pacific and Hispanic > Asian) then 2
+	when Hispanic between 40 and 50 and (Black >= 50 or White >= 50 or Asian >= 50 or Native >= 50 or Pacific >= 50) then 2
 	else 1 end HcId,
 case 
 	when Asian >= 50 then 3
-	when (White < 50 and Black < 50 and Native < 50 and Asian < 50 and Pacific < 50 and Hispanic < 50) and 
-					(Asian > White and Asian > Black and Asian > Native and Asian > Pacific and Asian > Hispanic) then 2
+	when Asian < 50 and (Asian > White and Asian > Black and Asian > Native and Asian > Pacific and Asian > Hispanic) then 2
+	when Asian between 40 and 50 and (Black >= 50 or White >= 50 or Hispanic >= 50 or Native >= 50 or Pacific >= 50) then 2
 	else 1 end AcId,
 case 
    	when meanCommute > (select avg(meanCommute) + stdev(MeanCommute) from acs2017_county group by state ) then 3
@@ -290,3 +290,5 @@ CREATE TABLE census_logs (
 	ModificationDate TEXT,
 	ModificationType TEXT
 );
+
+
