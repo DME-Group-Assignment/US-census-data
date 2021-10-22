@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/Users/marto/OneDrive/Asztali gép/Projects/MSc/Block 1/Data Management &amp; Ethics/assignment/US-census-data/database/dme_assignment" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="0"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="6729"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,12:maincensus_facts"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="acs2015_county" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="67"/><column index="2" value="118"/><column index="3" value="210"/><column index="4" value="64"/><column index="5" value="56"/><column index="6" value="56"/><column index="7" value="61"/><column index="8" value="46"/><column index="9" value="41"/><column index="10" value="49"/><column index="11" value="44"/><column index="12" value="49"/><column index="13" value="56"/><column index="14" value="60"/><column index="15" value="74"/><column index="16" value="101"/><column index="17" value="120"/><column index="18" value="60"/><column index="19" value="90"/><column index="20" value="87"/><column index="21" value="56"/><column index="22" value="45"/><column index="23" value="91"/><column index="24" value="78"/><column index="25" value="42"/><column index="26" value="57"/><column index="27" value="53"/><column index="28" value="40"/><column index="29" value="89"/><column index="30" value="94"/><column index="31" value="103"/><column index="32" value="69"/><column index="33" value="89"/><column index="34" value="79"/><column index="35" value="93"/><column index="36" value="81"/><column index="37" value="103"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="census_facts" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="67"/><column index="2" value="52"/><column index="3" value="57"/><column index="4" value="67"/><column index="5" value="40"/><column index="6" value="41"/><column index="7" value="40"/><column index="8" value="40"/><column index="9" value="81"/><column index="10" value="68"/><column index="11" value="61"/><column index="12" value="46"/><column index="13" value="41"/><column index="14" value="44"/><column index="15" value="55"/><column index="16" value="74"/><column index="17" value="101"/><column index="18" value="120"/><column index="19" value="87"/><column index="20" value="56"/><column index="21" value="45"/><column index="22" value="91"/><column index="23" value="78"/><column index="24" value="103"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1">--------------------------------------------------------------------------------------------------
+-- Data Quality check																		--
+--------------------------------------------------------------------------------------------------
+
+-- check for null values
+select * from acs2015_county ac
+where TotalPop is null or men is null or women is null or hispanic is null or white is null or black is null or native is null
+or asian is null or pacific is null or citizen is null or income is null or IncomeErr is null or IncomePerCap is null or poverty is null or 
+ChildPoverty is null or Professional is null or Service is null or office is null or Construction is null or Production is null or drive is null or 
+Carpool is null or Transit is null or walk is null or OtherTransp is null or WorkAtHome is null or MeanCommute is null or Employed is null or
+PrivateWork is null or PublicWork is null or SelfEmployed is null or FamilyWork is null or Unemployment is null; -- no null values
+
+select * from acs2017_county ac
+where TotalPop is null or men is null or women is null or hispanic is null or white is null or black is null or native is null
+or asian is null or pacific is null or VotingAgeCitizen is null or income is null or IncomeErr is null or IncomePerCap is null or poverty is null or 
+ChildPoverty is null or Professional is null or Service is null or office is null or Construction is null or Production is null or drive is null or 
+Carpool is null or Transit is null or walk is null or OtherTransp is null or WorkAtHome is null or MeanCommute is null or Employed is null or
+PrivateWork is null or PublicWork is null or SelfEmployed is null or FamilyWork is null or Unemployment is null; -- no null values
+
+-- check for empty strings
+select * from acs2015_county ac
+where TotalPop = '' or men = '' or women = '' or hispanic = '' or white = '' or black = '' or native = ''
+or asian = '' or pacific = '' or citizen = '' or income = '' or IncomeErr = '' or IncomePerCap = '' or poverty = '' or 
+ChildPoverty = '' or Professional = '' or Service = '' or office = '' or Construction = '' or Production = '' or drive = '' or 
+Carpool = '' or Transit = '' or walk = '' or OtherTransp = '' or WorkAtHome = '' or MeanCommute = '' or Employed = '' or
+PrivateWork = '' or PublicWork = '' or SelfEmployed = '' or FamilyWork = '' or Unemployment = '';
+-- censusid 15005 is missing Childpoverty
+-- censusid 48301 is missing income, incomeerr
+
+select * from acs2017_county ac
+where TotalPop = '' or men = '' or women = '' or hispanic = '' or white = '' or black = '' or native = ''
+or asian = '' or pacific = '' or VotingAgeCitizen = '' or income = '' or IncomeErr = '' or IncomePerCap = '' or poverty = '' or 
+ChildPoverty = '' or Professional = '' or Service = '' or office = '' or Construction = '' or Production = '' or drive = '' or 
+Carpool = '' or Transit = '' or walk = '' or OtherTransp = '' or WorkAtHome = '' or MeanCommute = '' or Employed = '' or
+PrivateWork = '' or PublicWork = '' or SelfEmployed = '' or FamilyWork = '' or Unemployment = '';
+-- censusid 15005 is missing Childpovert
+
+-- update empty strings into null values
+Update acs2015_county set ChildPoverty = NULL where CensusId = 15005;
+Update acs2017_county set ChildPoverty = NULL where CountyId = 15005;
+Update acs2015_county set Income = NULL, IncomeErr = NULL where CensusId = 48301;
+
+-- fix county name issue in 2017 census
+update acs2017_county set county = trim(replace(replace(replace(county, 'County', ''), 'Parish', ''), 'Municipio', ''));
+
+--------------------------------------------------------------------------------------------------
+-- Table creation																		        --
+--------------------------------------------------------------------------------------------------
+
+-- DDLs
+-- create fact table
+drop table census_facts;
+CREATE TABLE census_facts (
+	CensusId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	DateId INTEGER NOT NULL,
+	StateId INTEGER NOT NULL,
+	CountyId INTEGER NOT NULL,
+	BcId INTEGER NOT NULL,
+	WcId INTEGER NOT NULL,
+	HcId INTEGER NOT NULL,
+	AcId INTEGER NOT NULL,
+	CommuteId INTEGER NOT NULL,
+	IncomeId INTEGER NOT NULL,
+	Hispanic REAL,
+	White REAL,
+	Black REAL,
+	Asian REAL,
+	Income REAL,
+	IncomeErr REAL,
+	IncomePerCap INTEGER,
+	IncomePerCapErr INTEGER,
+	Professional REAL,
+	Service REAL,
+	Office REAL,
+	Construction REAL,
+	Production REAL,
+	MeanCommute REAL,
+	FOREIGN KEY (DateId)
+       REFERENCES date_dim (DateId),
+    FOREIGN KEY (StateId)
+       REFERENCES state_dim (StateId),
+    FOREIGN KEY (CountyId)
+       REFERENCES county_dim (CountyId),
+    FOREIGN KEY (BcId)
+       REFERENCES black_composition_dim (BcId), 
+    FOREIGN KEY (WcId)
+       REFERENCES white_composition_dim (WcId), 
+    FOREIGN KEY (AcId)
+       REFERENCES asian_composition_dim (AcId), 
+    FOREIGN KEY (HcId)
+       REFERENCES hispanic_composition_dim (HcId), 
+    FOREIGN KEY (CommuteId)
+       REFERENCES commute_dim (CommuteId),
+    FOREIGN KEY (IncomeId)
+       REFERENCES income_dim (IncomeId)
+);
+
+drop table state_dim;
+create table state_dim (
+	StateId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	State TEXT
+);
+
+drop table county_dim ;
+create table county_dim (
+	CountyId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	County TEXT
+);
+
+drop table black_composition_dim ; 
+create table black_composition_dim (
+	BcId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	black_composition TEXT
+);
+
+drop table white_composition_dim ;
+create table white_composition_dim (
+	WcId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	white_composition TEXT
+);
+
+drop table asian_composition_dim ;
+create table asian_composition_dim (
+	AcId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	asian_composition TEXT
+);
+
+drop table hispanic_composition_dim ;
+create table hispanic_composition_dim (
+	HcId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	hispanic_composition TEXT
+);
+
+drop table commute_dim ;
+create table commute_dim (
+	CommuteId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	commute_specification TEXT
+);
+
+drop table income_dim ;
+create table income_dim (
+	incomeId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	income_specification TEXT
+);
+
+drop table date_dim ;
+create table date_dim (
+	DateId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	year TEXT
+);
+
+-- populate state_dim
+insert into state_dim (State)
+select distinct State from acs2015_county ac;
+
+-- populate county_dim
+insert into county_dim (County)
+select distinct county from acs2015_county ac;
+
+-- populate black_composition_dim
+insert into black_composition_dim (black_composition)
+values ('Minority'), ('Plurality'), ('Majority');
+
+-- populate white_composition_dim
+insert into white_composition_dim (white_composition)
+values ('Minority'), ('Plurality'), ('Majority');
+
+-- populate asian_composition_dim
+insert into asian_composition_dim (asian_composition)
+values ('Minority'), ('Plurality'), ('Majority');
+
+-- populate hispanic_composition_dim
+insert into hispanic_composition_dim (hispanic_composition)
+values ('Minority'), ('Plurality'), ('Majority');
+
+-- populate commute_dim
+insert into commute_dim (commute_specification)
+values ('Low Commute Time'), ('Normal Commute Time'), ('High Commute Time');
+
+-- populate income_dim
+insert into income_dim (income_specification)
+values ('Low Income'), ('Medium Income'), ('High Income');
+
+-- populate date_dim
+insert into date_dim (year)
+values ('2015'), ('2017');
+
+insert into census_facts (DateId, StateId, CountyId, BcId, WcId, HcId, AcId, CommuteId, IncomeId,
+							Hispanic, White, Black, Asian,
+							Income, IncomeErr, IncomePerCap, IncomePerCapErr, Professional,
+							Service, Office, Construction, Production, MeanCommute)
+SELECT 1 as DateId, s.StateId, c.CountyId,
+case 
+	when Black &gt;= 50 then 3
+	when Black &lt; 50 and (Black &gt; Hispanic and Black &gt; White and Black &gt; Native and Black &gt; Pacific and Black &gt; Asian) then 2
+	when Black between 40 and 50 and (White &gt;= 50 or Hispanic &gt;= 50 or Asian &gt;= 50 or Native &gt;= 50 or Pacific &gt;= 50) then 2
+	else 1 end BcId,
+case 
+	when White &gt;= 50 then 3
+	when White &lt; 50 and (White &gt; Hispanic and White &gt; Black and White &gt; Native and White &gt; Pacific and White &gt; Asian) then 2
+	when White between 40 and 50 and (Black &gt;= 50 or Hispanic &gt;= 50 or Asian &gt;= 50 or Native &gt;= 50 or Pacific &gt;= 50) then 2
+	else 1 end WcId,
+case 
+	when Hispanic &gt;= 50 then 3
+	when Hispanic &lt; 50 and (Hispanic &gt; White and Hispanic &gt; Black and Hispanic &gt; Native and Hispanic &gt; Pacific and Hispanic &gt; Asian) then 2
+	when Hispanic between 40 and 50 and (Black &gt;= 50 or White &gt;= 50 or Asian &gt;= 50 or Native &gt;= 50 or Pacific &gt;= 50) then 2
+	else 1 end HcId,
+case 
+	when Asian &gt;= 50 then 3
+	when Asian &lt; 50 and (Asian &gt; White and Asian &gt; Black and Asian &gt; Native and Asian &gt; Pacific and Asian &gt; Hispanic) then 2
+	when Asian between 40 and 50 and (Black &gt;= 50 or White &gt;= 50 or Hispanic &gt;= 50 or Native &gt;= 50 or Pacific &gt;= 50) then 2
+	else 1 end AcId,
+case 
+   	when meanCommute &gt; (select avg(meanCommute) + stdev(MeanCommute) from acs2015_county group by state ) then 3 -- needs stdev function from extension-functions.c 
+	when meanCommute &lt; (select avg(meanCommute) + stdev(MeanCommute) from acs2015_county group by state )        -- https://www.sqlite.org/contrib?orderby=date
+			and MeanCommute &gt; (select avg(meanCommute) - stdev(MeanCommute) from acs2015_county group by state ) then 2
+	else 1 end commute_id,
+case 
+   	when Income &gt; (select avg(Income) + stdev(Income) from acs2015_county group by state ) then 3
+	when Income &lt; (select avg(Income) + stdev(Income) from acs2015_county group by state ) 
+			and Income &gt; (select avg(Income) - stdev(Income) from acs2015_county group by state ) then 2
+	else 1 end income_id,
+Hispanic, White,
+Black, Asian,  
+Income, IncomeErr, 
+IncomePerCap, IncomePerCapErr, 
+Professional, Service, 
+Office, Construction,
+Production, MeanCommute
+FROM acs2015_county t
+inner join state_dim s on s.state = t.state
+inner join county_dim c on c.county = t.County
+UNION
+SELECT 2 as Dateid, s.StateId, c.CountyId,
+case 
+	when Black &gt;= 50 then 3
+	when Black &lt; 50 and (Black &gt; Hispanic and Black &gt; White and Black &gt; Native and Black &gt; Pacific and Black &gt; Asian) then 2
+	when Black between 40 and 50 and (White &gt;= 50 or Hispanic &gt;= 50 or Asian &gt;= 50 or Native &gt;= 50 or Pacific &gt;= 50) then 2
+	else 1 end BcId,
+case 
+	when White &gt;= 50 then 3
+	when White &lt; 50 and (White &gt; Hispanic and White &gt; Black and White &gt; Native and White &gt; Pacific and White &gt; Asian) then 2
+	when White between 40 and 50 and (Black &gt;= 50 or Hispanic &gt;= 50 or Asian &gt;= 50 or Native &gt;= 50 or Pacific &gt;= 50) then 2
+	else 1 end WcId,
+case 
+	when Hispanic &gt;= 50 then 3
+	when Hispanic &lt; 50 and (Hispanic &gt; White and Hispanic &gt; Black and Hispanic &gt; Native and Hispanic &gt; Pacific and Hispanic &gt; Asian) then 2
+	when Hispanic between 40 and 50 and (Black &gt;= 50 or White &gt;= 50 or Asian &gt;= 50 or Native &gt;= 50 or Pacific &gt;= 50) then 2
+	else 1 end HcId,
+case 
+	when Asian &gt;= 50 then 3
+	when Asian &lt; 50 and (Asian &gt; White and Asian &gt; Black and Asian &gt; Native and Asian &gt; Pacific and Asian &gt; Hispanic) then 2
+	when Asian between 40 and 50 and (Black &gt;= 50 or White &gt;= 50 or Hispanic &gt;= 50 or Native &gt;= 50 or Pacific &gt;= 50) then 2
+	else 1 end AcId,
+case 
+   	when meanCommute &gt; (select avg(meanCommute) + stdev(MeanCommute) from acs2017_county group by state ) then 3
+	when meanCommute &lt; (select avg(meanCommute) + stdev(MeanCommute) from acs2017_county group by state ) 
+			and MeanCommute &gt; (select avg(meanCommute) - stdev(MeanCommute) from acs2017_county group by state ) then 2
+	else 1 end commute_id,
+case 
+   	when Income &gt; (select avg(Income) + stdev(Income) from acs2017_county group by state ) then 3
+	when Income &lt; (select avg(Income) + stdev(Income) from acs2017_county group by state ) 
+			and Income &gt; (select avg(Income) - stdev(Income) from acs2017_county group by state ) then 2
+	else 1 end income_id,
+Hispanic, White,
+Black, Asian,  
+Income, IncomeErr, 
+IncomePerCap, IncomePerCapErr, 
+Professional, Service, 
+Office, Construction,
+Production, MeanCommute
+FROM acs2017_county t2
+inner join state_dim s on s.state = t2.state
+inner join county_dim c on c.county = t2.County;
+
+-- test query from main facts table
+select * from census_facts cf;
+
+-- trigger prevent update
+drop trigger PreventUpdateCensusFacts;
+CREATE TRIGGER PreventUpdateCensusFacts
+       BEFORE UPDATE ON census_facts
+BEGIN 
+  SELECT CASE 
+  		WHEN new.hispanic is not null or
+  			 new.white is not null or
+  			 new.black is not null or
+  			 new.asian is not null or
+  			 new.income is not null or
+  			 new.meancommute is not null
+  		then
+  		RAISE(ABORT,'You cannot update race, income or commute attributes.') END;
+END;
+
+-- Demonstrate that the trigger does not allow to update specific columns
+update census_facts 
+set white = 100
+where white &lt; 50;
+
+--------------------------------------------------------------------------------------------------
+-- Answers to Question 1																		--
+--------------------------------------------------------------------------------------------------
+
+drop view black_income;
+CREATE VIEW black_income AS
+select black_composition, income_specification, count(*) 
+from census_facts cf 
+inner join black_composition_dim bcd ON bcd.BcId = cf.BcId
+inner join income_dim id ON  id.incomeId = cf.incomeId
+group by income_specification, black_composition;
+
+select * from black_income;
+
+drop view white_income;
+CREATE VIEW white_income AS
+select white_composition, income_specification, count(*) 
+from census_facts cf 
+inner join white_composition_dim wcd ON wcd.WcId = cf.WcId
+inner join income_dim id ON  id.incomeId = cf.incomeId
+group by income_specification, white_composition;
+
+select * from white_income;
+
+drop view asian_income;
+CREATE VIEW asian_income AS
+select asian_composition, income_specification, count(*) 
+from census_facts cf 
+inner join asian_composition_dim acd ON acd.AcId = cf.AcId 
+inner join income_dim id ON  id.incomeId = cf.incomeId
+group by asian_composition, income_specification;
+
+select * from asian_income;
+
+drop view hispanic_income;
+CREATE VIEW hispanic_income AS
+select hispanic_composition, income_specification, count(*) 
+from census_facts cf 
+inner join hispanic_composition_dim hcd ON hcd.HcId = cf.HcId 
+inner join income_dim id ON  id.incomeId = cf.incomeId
+group by hispanic_composition, income_specification;
+
+select * from hispanic_income;
+
+--------------------------------------------------------------------------------------------------
+-- Answers to Question 2																		--
+--------------------------------------------------------------------------------------------------
+
+-- nr of observations in census based on race composition and commute time (across both years)
+select bcd.black_composition, cd.commute_specification, count(*) cnt
+from census_facts cf, (select count(*) as cnt from census_facts cf) cf2
+inner join black_composition_dim bcd ON bcd.BcId = cf.BcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+group by bcd.black_composition, cd.commute_specification
+order by cnt desc;
+
+select wcd.white_composition, cd.commute_specification, count(*) cnt
+from census_facts cf, (select count(*) as cnt from census_facts cf) cf2
+inner join white_composition_dim wcd ON wcd.WcId = cf.WcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+group by wcd.white_composition, cd.commute_specification
+order by cnt desc;
+
+select hcd.hispanic_composition, cd.commute_specification, count(*) cnt
+from census_facts cf, (select count(*) as cnt from census_facts cf) cf2
+inner join hispanic_composition_dim hcd ON hcd.HcId = cf.HcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+group by hcd.hispanic_composition, cd.commute_specification
+order by cnt desc;
+
+select acd.asian_composition, cd.commute_specification, count(*) cnt
+from census_facts cf, (select count(*) as cnt from census_facts cf) cf2
+inner join asian_composition_dim acd ON acd.AcId = cf.AcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+group by acd.asian_composition, cd.commute_specification
+order by cnt desc;
+
+-- nr of observations in census based on race composition and commute time (across both years) AS PERCENTAGE of total in specific race composition
+select bcd.black_composition, cd.commute_specification, round((count(*) * 1.0) / c_count.comp_count * 100,2) as freq_prcnt
+from census_facts cf 
+inner join black_composition_dim bcd ON bcd.BcId = cf.BcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+inner join (
+			select bcd.black_composition, count(*) as comp_count
+			from census_facts cf
+			inner join black_composition_dim bcd on bcd.BcId = cf.BcId 
+			group by bcd.black_composition 
+) as c_count on c_count.black_composition = bcd.black_composition 
+group by bcd.black_composition, cd.commute_specification
+order by bcd.black_composition, freq_prcnt desc;
+
+select wcd.white_composition, cd.commute_specification, round((count(*) * 1.0) / c_count.comp_count * 100,2) as freq_prcnt
+from census_facts cf 
+inner join white_composition_dim wcd ON wcd.WcId = cf.WcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+inner join (
+			select wcd.white_composition, count(*) as comp_count
+			from census_facts cf
+			inner join white_composition_dim wcd on wcd.WcId = cf.WcId 
+			group by wcd.white_composition 
+) as c_count on c_count.white_composition = wcd.white_composition 
+group by wcd.white_composition, cd.commute_specification
+order by wcd.white_composition, freq_prcnt desc;
+
+select hcd.hispanic_composition, cd.commute_specification, round((count(*) * 1.0) / c_count.comp_count * 100,2) as freq_prcnt
+from census_facts cf 
+inner join hispanic_composition_dim hcd ON hcd.HcId = cf.HcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+inner join (
+			select hcd.hispanic_composition, count(*) as comp_count
+			from census_facts cf
+			inner join hispanic_composition_dim hcd on hcd.HcId = cf.HcId 
+			group by hcd.hispanic_composition 
+) as c_count on c_count.hispanic_composition = hcd.hispanic_composition 
+group by hcd.hispanic_composition, cd.commute_specification
+order by hcd.hispanic_composition, freq_prcnt desc;
+
+select acd.asian_composition, cd.commute_specification, round((count(*) * 1.0) / c_count.comp_count * 100,2) as freq_prcnt
+from census_facts cf 
+inner join asian_composition_dim acd ON acd.AcId = cf.AcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+inner join (
+			select acd.asian_composition, count(*) as comp_count
+			from census_facts cf
+			inner join asian_composition_dim acd on acd.AcId = cf.AcId 
+			group by acd.asian_composition 
+) as c_count on c_count.asian_composition = acd.asian_composition 
+group by acd.asian_composition, cd.commute_specification
+order by acd.asian_composition, freq_prcnt desc;
+
+-- percentage of people working in hard, demanding jobs by racial composition and commute time
+select 'Black ' || bcd.black_composition as race_composition, cd.commute_specification, round(avg(Construction) + avg(Production),2) as Hard_Physical_Jobs from census_facts cf 
+inner join black_composition_dim bcd ON bcd.BcId = cf.BcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+where DateId = 1
+group by cd.commute_specification, bcd.black_composition
+union
+select 'White ' || wcd.white_composition as race_compostion, cd.commute_specification, round(avg(Construction) + avg(Production),2) as Hard_Physical_Jobs from census_facts cf 
+inner join white_composition_dim wcd ON wcd.WcId = cf.WcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+where DateId = 1
+group by cd.commute_specification, wcd.white_composition
+union
+select 'Hispanic ' || hcd.hispanic_composition as race_compostion, cd.commute_specification, round(avg(Construction) + avg(Production),2) as Hard_Physical_Jobs from census_facts cf 
+inner join hispanic_composition_dim hcd ON hcd.HcId = cf.HcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+where DateId = 1
+group by cd.commute_specification, hcd.hispanic_composition
+union
+select 'Asian ' || acd.asian_composition as race_compostion, cd.commute_specification, round(avg(Construction) + avg(Production),2) as Hard_Physical_Jobs from census_facts cf 
+inner join asian_composition_dim acd ON acd.AcId = cf.AcId
+inner join commute_dim cd on cd.CommuteId = cf.CommuteId
+where DateId = 1
+group by cd.commute_specification, acd.asian_composition
+order by hard_physical_jobs desc;
+
+--------------------------------------------------------------------------------------------------
+-- Answers to Question 3																		--
+--------------------------------------------------------------------------------------------------
+
+-- create income differences view to answer Q3
+drop view income_differences;
+create view income_differences as
+select cf.StateId, cf.CountyId, cf.BcId as BcId_2015, cf.WcId as WcId_2015, cf.HcId as HcId_2015, cf.AcId as AcId_2015,
+	   cf2.BcId as BcId_2017, cf2.WcId as WcId_2017, cf2.HcId as HcId_2017, cf2.AcId as AcId_2017,
+	   cf2.income_2017, cf2.rnk_2017, cf.Income as income_2015,
+	   rank() over(order by cf.Income desc) as rnk_2015
+from census_facts cf 
+inner join (
+			select cf.StateId, cf.CountyId, cf.BcId, cf.WcId, cf.HcId, cf.AcId, 
+			       cf.Income as income_2017, rank() over(order by cf.Income desc) as rnk_2017
+			from census_facts cf 
+			where cf.DateId = 2
+) cf2 on cf2.StateId = cf.StateId and cf2.CountyId = cf.CountyId
+where cf.DateId = 1;
+
+-- add index on income to boost performance
+drop index income_idx;
+CREATE INDEX income_idx 
+ON census_facts(Income);
+
+-- shows that the index is used once for each subquery, thus
+-- giving higher performance
+EXPLAIN QUERY PLAN 
+select bcd_2015.black_composition as bc_2015, bcd_2017.black_composition as bc_2017,
+       round(avg(id.income_2015),2) as income_2015, round(avg(id.income_2017),2) as income_2017, round(avg(id.income_2017),2) - round(avg(id.income_2015),2) as income_diff,
+       round(avg(id.rnk_2015),2) as rnk_2015, round(avg(id.rnk_2017),2) as rnk_2017, round(avg(id.rnk_2015),2) - round(avg(id.rnk_2017),2) as rnk_diff
+from income_differences id
+inner join state_dim sd on sd.StateId = id.StateId
+inner join county_dim cd on cd.CountyId = id.CountyId
+inner join black_composition_dim bcd_2015 on bcd_2015.BcId = id.BcId_2015
+inner join black_composition_dim bcd_2017 on bcd_2017.BcId = id.BcId_2017
+where id.BcId_2015 &lt;&gt; id.BcId_2017 and rnk_2015 &lt;&gt; rnk_2017 
+group by bc_2015, bc_2017;
+
+-- check race composition and income differences in 2015, 2017
+select bcd_2015.black_composition as bc_2015, bcd_2017.black_composition as bc_2017,
+       round(avg(id.income_2015),2) as income_2015, round(avg(id.income_2017),2) as income_2017, round(avg(id.income_2017),2) - round(avg(id.income_2015),2) as income_diff,
+       round(avg(id.rnk_2015),2) as rnk_2015, round(avg(id.rnk_2017),2) as rnk_2017, round(avg(id.rnk_2015),2) - round(avg(id.rnk_2017),2) as rnk_diff
+from income_differences id
+inner join state_dim sd on sd.StateId = id.StateId
+inner join county_dim cd on cd.CountyId = id.CountyId
+inner join black_composition_dim bcd_2015 on bcd_2015.BcId = id.BcId_2015
+inner join black_composition_dim bcd_2017 on bcd_2017.BcId = id.BcId_2017
+where id.BcId_2015 &lt;&gt; id.BcId_2017 and rnk_2015 &lt;&gt; rnk_2017 
+group by bc_2015, bc_2017;
+
+select wcd_2015.white_composition as wc_2015, wcd_2017.white_composition as wc_2017,
+       round(avg(id.income_2015),2) as income_2015, round(avg(id.income_2017),2) as income_2017, round(avg(id.income_2017),2) - round(avg(id.income_2015),2) as income_diff,
+       round(avg(id.rnk_2015),2) as rnk_2015, round(avg(id.rnk_2017),2) as rnk_2017, round(avg(id.rnk_2015),2) - round(avg(id.rnk_2017),2) as rnk_diff
+from income_differences id
+inner join state_dim sd on sd.StateId = id.StateId
+inner join county_dim cd on cd.CountyId = id.CountyId
+inner join white_composition_dim wcd_2015 on wcd_2015.wcId = id.wcId_2015
+inner join white_composition_dim wcd_2017 on wcd_2017.wcId = id.wcId_2017
+where id.wcId_2015 &lt;&gt; id.wcId_2017 and rnk_2015 &lt;&gt; rnk_2017 
+group by wc_2015, wc_2017;
+
+select hcd_2015.hispanic_composition as hc_2015, hcd_2017.hispanic_composition as hc_2017,
+       round(avg(id.income_2015),2) as income_2015, round(avg(id.income_2017),2) as income_2017, round(avg(id.income_2017),2) - round(avg(id.income_2015),2) as income_diff,
+       round(avg(id.rnk_2015),2) as rnk_2015, round(avg(id.rnk_2017),2) as rnk_2017, round(avg(id.rnk_2015),2) - round(avg(id.rnk_2017),2) as rnk_diff
+from income_differences id
+inner join state_dim sd on sd.StateId = id.StateId
+inner join county_dim cd on cd.CountyId = id.CountyId
+inner join hispanic_composition_dim hcd_2015 on hcd_2015.hcId = id.hcId_2015
+inner join hispanic_composition_dim hcd_2017 on hcd_2017.hcId = id.hcId_2017
+where id.hcId_2015 &lt;&gt; id.hcId_2017 and rnk_2015 &lt;&gt; rnk_2017 
+group by hc_2015, hc_2017;
+
+select acd_2015.asian_composition as ac_2015, acd_2017.asian_composition as ac_2017,
+       round(avg(id.income_2015),2) as income_2015, round(avg(id.income_2017),2) as income_2017, round(avg(id.income_2017),2) - round(avg(id.income_2015),2) as income_diff,
+       round(avg(id.rnk_2015),2) as rnk_2015, round(avg(id.rnk_2017),2) as rnk_2017, round(avg(id.rnk_2015),2) - round(avg(id.rnk_2017),2) as rnk_diff
+from income_differences id
+inner join state_dim sd on sd.StateId = id.StateId
+inner join county_dim cd on cd.CountyId = id.CountyId
+inner join asian_composition_dim acd_2015 on acd_2015.acId = id.acId_2015
+inner join asian_composition_dim acd_2017 on acd_2017.acId = id.acId_2017
+where id.acId_2015 &lt;&gt; id.acId_2017 and rnk_2015 &lt;&gt; rnk_2017 
+group by ac_2015, ac_2017;
+</sql><current_tab id="0"/></tab_sql></sqlb_project>

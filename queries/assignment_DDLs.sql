@@ -1,3 +1,7 @@
+--------------------------------------------------------------------------------------------------
+-- Data Quality check																		--
+--------------------------------------------------------------------------------------------------
+
 -- check for null values
 select * from acs2015_county ac
 where TotalPop is null or men is null or women is null or hispanic is null or white is null or black is null or native is null
@@ -38,6 +42,10 @@ Update acs2015_county set Income = NULL, IncomeErr = NULL where CensusId = 48301
 
 -- fix county name issue in 2017 census
 update acs2017_county set county = trim(replace(replace(replace(county, 'County', ''), 'Parish', ''), 'Municipio', ''));
+
+--------------------------------------------------------------------------------------------------
+-- Table creation																		--
+--------------------------------------------------------------------------------------------------
 
 -- DDLs
 drop table state_dim;
@@ -82,6 +90,12 @@ create table commute_dim (
 	commute_specification TEXT
 );
 
+drop table income_dim ;
+create table income_dim (
+	incomeId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	income_specification TEXT
+);
+
 drop table date_dim ;
 create table date_dim (
 	DateId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -116,6 +130,10 @@ values ('Minority'), ('Plurality'), ('Majority');
 insert into commute_dim (commute_specification)
 values ('Low Commute Time'), ('Normal Commute Time'), ('High Commute Time');
 
+-- populate income_dim
+insert into income_dim (income_specification)
+values ('Low Income'), ('Medium Income'), ('High Income');
+
 -- populate date_dim
 insert into date_dim (year)
 values ('2015'), ('2017');
@@ -132,40 +150,21 @@ CREATE TABLE census_facts (
 	HcId INTEGER NOT NULL,
 	AcId INTEGER NOT NULL,
 	CommuteId INTEGER NOT NULL,
-	TotalPop INTEGER,
-	Men INTEGER,
-	Women INTEGER,
+	IncomeId INTEGER NOT NULL,
 	Hispanic REAL,
 	White REAL,
 	Black REAL,
-	Native REAL,
 	Asian REAL,
-	Pacific REAL,
-	Citizen INTEGER,
 	Income REAL,
 	IncomeErr REAL,
 	IncomePerCap INTEGER,
 	IncomePerCapErr INTEGER,
-	Poverty REAL,
-	ChildPoverty REAL,
 	Professional REAL,
 	Service REAL,
 	Office REAL,
 	Construction REAL,
 	Production REAL,
-	Drive REAL,
-	Carpool REAL,
-	Transit REAL,
-	Walk REAL,
-	OtherTransp REAL,
-	WorkAtHome REAL,
 	MeanCommute REAL,
-	Employed INTEGER,
-	PrivateWork REAL,
-	PublicWork REAL,
-	SelfEmployed REAL,
-	FamilyWork REAL,
-	Unemployment REAL,
 	FOREIGN KEY (DateId)
        REFERENCES date_dim (DateId),
     FOREIGN KEY (StateId)
@@ -181,14 +180,15 @@ CREATE TABLE census_facts (
     FOREIGN KEY (HcId)
        REFERENCES hispanic_composition_dim (HcId), 
     FOREIGN KEY (CommuteId)
-       REFERENCES commute_dim (CommuteId)
+       REFERENCES commute_dim (CommuteId),
+    FOREIGN KEY (IncomeId)
+       REFERENCES income_dim (IncomeId)
 );
 
-insert into census_facts (DateId, StateId, CountyId, BcId, WcId, HcId, AcId, CommuteId,
-							TotalPop, Men, Women, Hispanic, White, Black, Native, Asian, Pacific, Citizen,
-							Income, IncomeErr, IncomePerCap, IncomePerCapErr, Poverty, ChildPoverty, Professional,
-							Service, Office, Construction, Production, Drive, Carpool, Transit, Walk, OtherTransp,
-							WorkAtHome, MeanCommute, Employed, PrivateWork, PublicWork, SelfEmployed, FamilyWork, Unemployment)
+insert into census_facts (DateId, StateId, CountyId, BcId, WcId, HcId, AcId, CommuteId, IncomeId,
+							Hispanic, White, Black, Asian,
+							Income, IncomeErr, IncomePerCap, IncomePerCapErr, Professional,
+							Service, Office, Construction, Production, MeanCommute)
 SELECT 1 as DateId, s.StateId, c.CountyId,
 case 
 	when Black >= 50 then 3
@@ -215,18 +215,18 @@ case
 	when meanCommute < (select avg(meanCommute) + stdev(MeanCommute) from acs2015_county group by state ) 
 			and MeanCommute > (select avg(meanCommute) - stdev(MeanCommute) from acs2015_county group by state ) then 2
 	else 1 end commute_id,
-TotalPop, Men, Women, 
-Hispanic, White, Black, 
-Native, Asian, Pacific, 
-Citizen, Income, IncomeErr, 
-IncomePerCap, IncomePerCapErr, Poverty, 
-ChildPoverty, Professional, Service, 
-Office, Construction, Production,
-Drive, Carpool, Transit,
-Walk, OtherTransp, WorkAtHome,
-MeanCommute, Employed, PrivateWork,
-PublicWork, SelfEmployed,
-FamilyWork, Unemployment
+case 
+   	when Income > (select avg(Income) + stdev(Income) from acs2015_county group by state ) then 3
+	when Income < (select avg(Income) + stdev(Income) from acs2015_county group by state ) 
+			and Income > (select avg(Income) - stdev(Income) from acs2015_county group by state ) then 2
+	else 1 end income_id,
+Hispanic, White,
+Black, Asian,  
+Income, IncomeErr, 
+IncomePerCap, IncomePerCapErr, 
+Professional, Service, 
+Office, Construction,
+Production, MeanCommute
 FROM acs2015_county t
 inner join state_dim s on s.state = t.state
 inner join county_dim c on c.county = t.County
@@ -257,18 +257,18 @@ case
 	when meanCommute < (select avg(meanCommute) + stdev(MeanCommute) from acs2017_county group by state ) 
 			and MeanCommute > (select avg(meanCommute) - stdev(MeanCommute) from acs2017_county group by state ) then 2
 	else 1 end commute_id,
-TotalPop, Men, Women,
-Hispanic, White, Black,
-Native, Asian, Pacific, 
-VotingAgeCitizen as Citizen , Income, IncomeErr,
-IncomePerCap, IncomePerCapErr, Poverty, 
-ChildPoverty, Professional, Service, 
-Office, Construction, Production, 
-Drive, Carpool, Transit, 
-Walk, OtherTransp, WorkAtHome, 
-MeanCommute, Employed, PrivateWork,
-PublicWork, SelfEmployed, 
-FamilyWork, Unemployment
+case 
+   	when Income > (select avg(Income) + stdev(Income) from acs2017_county group by state ) then 3
+	when Income < (select avg(Income) + stdev(Income) from acs2017_county group by state ) 
+			and Income > (select avg(Income) - stdev(Income) from acs2017_county group by state ) then 2
+	else 1 end income_id,
+Hispanic, White,
+Black, Asian,  
+Income, IncomeErr, 
+IncomePerCap, IncomePerCapErr, 
+Professional, Service, 
+Office, Construction,
+Production, MeanCommute
 FROM acs2017_county t2
 inner join state_dim s on s.state = t2.state
 inner join county_dim c on c.county = t2.County;

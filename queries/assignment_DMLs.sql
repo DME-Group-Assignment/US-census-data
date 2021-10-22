@@ -1,4 +1,48 @@
 --------------------------------------------------------------------------------------------------
+-- Answers to Question 1																		--
+--------------------------------------------------------------------------------------------------
+
+drop view black_income;
+CREATE VIEW black_income AS
+select black_composition, income_specification, count(*) 
+from census_facts cf 
+inner join black_composition_dim bcd ON bcd.BcId = cf.BcId
+inner join income_dim id ON  id.incomeId = cf.incomeId
+group by income_specification, black_composition;
+
+select * from black_income;
+
+drop view white_income;
+CREATE VIEW white_income AS
+select white_composition, income_specification, count(*) 
+from census_facts cf 
+inner join white_composition_dim wcd ON wcd.WcId = cf.WcId
+inner join income_dim id ON  id.incomeId = cf.incomeId
+group by income_specification, white_composition;
+
+select * from white_income;
+
+drop view asian_income;
+CREATE VIEW asian_income AS
+select asian_composition, income_specification, count(*) 
+from census_facts cf 
+inner join asian_composition_dim acd ON acd.AcId = cf.AcId 
+inner join income_dim id ON  id.incomeId = cf.incomeId
+group by asian_composition, income_specification;
+
+select * from asian_income;
+
+drop view hispanic_income;
+CREATE VIEW hispanic_income AS
+select hispanic_composition, income_specification, count(*) 
+from census_facts cf 
+inner join hispanic_composition_dim hcd ON hcd.HcId = cf.HcId 
+inner join income_dim id ON  id.incomeId = cf.incomeId
+group by hispanic_composition, income_specification;
+
+select * from hispanic_income;
+
+--------------------------------------------------------------------------------------------------
 -- Answers to Question 2																		--
 --------------------------------------------------------------------------------------------------
 
@@ -8,28 +52,28 @@ from census_facts cf, (select count(*) as cnt from census_facts cf) cf2
 inner join black_composition_dim bcd ON bcd.BcId = cf.BcId
 inner join commute_dim cd on cd.CommuteId = cf.CommuteId
 group by bcd.black_composition, cd.commute_specification
-order by cnt desc
+order by cnt desc;
 
 select wcd.white_composition, cd.commute_specification, count(*) cnt
 from census_facts cf, (select count(*) as cnt from census_facts cf) cf2
 inner join white_composition_dim wcd ON wcd.WcId = cf.WcId
 inner join commute_dim cd on cd.CommuteId = cf.CommuteId
 group by wcd.white_composition, cd.commute_specification
-order by cnt desc
+order by cnt desc;
 
 select hcd.hispanic_composition, cd.commute_specification, count(*) cnt
 from census_facts cf, (select count(*) as cnt from census_facts cf) cf2
 inner join hispanic_composition_dim hcd ON hcd.HcId = cf.HcId
 inner join commute_dim cd on cd.CommuteId = cf.CommuteId
 group by hcd.hispanic_composition, cd.commute_specification
-order by cnt desc
+order by cnt desc;
 
 select acd.asian_composition, cd.commute_specification, count(*) cnt
 from census_facts cf, (select count(*) as cnt from census_facts cf) cf2
 inner join asian_composition_dim acd ON acd.AcId = cf.AcId
 inner join commute_dim cd on cd.CommuteId = cf.CommuteId
 group by acd.asian_composition, cd.commute_specification
-order by cnt desc
+order by cnt desc;
 
 -- nr of observations in census based on race composition and commute time (across both years) AS PERCENTAGE of total in specific race composition
 select bcd.black_composition, cd.commute_specification, round((count(*) * 1.0) / c_count.comp_count * 100,2) as freq_prcnt
@@ -108,7 +152,7 @@ inner join asian_composition_dim acd ON acd.AcId = cf.AcId
 inner join commute_dim cd on cd.CommuteId = cf.CommuteId
 where DateId = 1
 group by cd.commute_specification, acd.asian_composition
-order by hard_physical_jobs desc
+order by hard_physical_jobs desc;
 
 --------------------------------------------------------------------------------------------------
 -- Answers to Question 3																		--
@@ -131,7 +175,7 @@ inner join (
 where cf.DateId = 1;
 
 -- add index on income to boost performance
-drop index date_idx;
+drop index income_idx;
 CREATE INDEX income_idx 
 ON census_facts(Income);
 
@@ -149,7 +193,7 @@ inner join black_composition_dim bcd_2017 on bcd_2017.BcId = id.BcId_2017
 where id.BcId_2015 <> id.BcId_2017 and rnk_2015 <> rnk_2017 
 group by bc_2015, bc_2017;
 
-
+-- check race composition and income differences in 2015, 2017
 select bcd_2015.black_composition as bc_2015, bcd_2017.black_composition as bc_2017,
        round(avg(id.income_2015),2) as income_2015, round(avg(id.income_2017),2) as income_2017, round(avg(id.income_2017),2) - round(avg(id.income_2015),2) as income_diff,
        round(avg(id.rnk_2015),2) as rnk_2015, round(avg(id.rnk_2017),2) as rnk_2017, round(avg(id.rnk_2015),2) - round(avg(id.rnk_2017),2) as rnk_diff
